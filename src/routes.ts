@@ -8,6 +8,8 @@ import { MedicoController } from "./controllers/MedicoController";
 import { DocumentoTransferenciaController } from "./controllers/DocumentoTransferenciaController";
 import { ProntuarioController } from "./controllers/ProntuarioController";
 import { PacienteController } from "./controllers/PacienteController";
+import { SolicitacaoController } from "./controllers/SolicitacaoController";
+import { TransferenciaController } from "./controllers/TransferenciaController";
 
 const routes = Router();
 const path = '/stp';
@@ -21,6 +23,8 @@ const medicoController = new MedicoController();
 const documentoTransferenciaController = new DocumentoTransferenciaController();
 const prontuarioController = new ProntuarioController();
 const pacienteController = new PacienteController();
+const solicitacaoController = new SolicitacaoController();
+const transferenciaController = new TransferenciaController();
 
 routes.get(`${path}/medicamentos`, medicamentoController.getAll);
 routes.get(`${path}/medicamentos/:id`, medicamentoController.getById);
@@ -75,5 +79,17 @@ routes.get(`${path}/pacientes/:cpf`, pacienteController.getByCpf);
 routes.post(`${path}/pacientes`, pacienteController.create);
 routes.put(`${path}/pacientes/:cpf`, pacienteController.update);
 routes.delete(`${path}/pacientes/:cpf`, pacienteController.delete);
+
+routes.get(`${path}/solicitacoes`, solicitacaoController.getAll);
+routes.get(`${path}/solicitacoes/:id`, solicitacaoController.getById);
+routes.post(`${path}/solicitacoes`, solicitacaoController.create);
+routes.put(`${path}/solicitacoes/:id`, solicitacaoController.update);
+routes.delete(`${path}/solicitacoes/:id`, solicitacaoController.delete);
+
+routes.get(`${path}/transferencias`, transferenciaController.getAll);
+routes.get(`${path}/transferencias/:id`, transferenciaController.getById);
+routes.post(`${path}/transferencias`, transferenciaController.create);
+routes.put(`${path}/transferencias/:id`, transferenciaController.update);
+routes.delete(`${path}/transferencias/:id`, transferenciaController.delete);
 
 export { routes };

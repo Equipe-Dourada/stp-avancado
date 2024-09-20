@@ -59,6 +59,7 @@ model Especialidade {
   UnidadeHospitalar   UnidadeHospitalar? @relation(fields: [unidadeHospitalarId], references: [id])
   unidadeHospitalarId String?            @db.ObjectId
   Medico              Medico[]
+  Solicitacao         Solicitacao[]
 }
 
 model UnidadeHospitalar {
@@ -77,6 +78,8 @@ model UnidadeHospitalar {
   updatedAt             DateTime        @updatedAt
   enderecoId            String          @db.ObjectId
   Medico                Medico[]
+  TransferenciasOrigem  Transferencia[] @relation("OrigemTransferencia")
+  TransferenciasDestino Transferencia[] @relation("DestinoTransferencia")
 }
 
 enum Papel {
@@ -85,25 +88,31 @@ enum Papel {
 }
 
 model Medico {
-  crm                 String            @id @map("_id")
-  nome                String
-  telefone            String
-  unidadeHospitalar   UnidadeHospitalar @relation(fields: [unidadeHospitalarId], references: [id])
-  papel               Papel
-  especialidade       Especialidade     @relation(fields: [especialidadeId], references: [id])
-  createdAt           DateTime          @default(now())
-  updatedAt           DateTime          @updatedAt
-  unidadeHospitalarId String            @db.ObjectId
-  especialidadeId     String            @db.ObjectId
+  crm                     String            @id @map("_id")
+  nome                    String
+  telefone                String
+  unidadeHospitalar       UnidadeHospitalar @relation(fields: [unidadeHospitalarId], references: [id])
+  papel                   Papel
+  especialidade           Especialidade     @relation(fields: [especialidadeId], references: [id])
+  createdAt               DateTime          @default(now())
+  updatedAt               DateTime          @updatedAt
+  unidadeHospitalarId     String            @db.ObjectId
+  especialidadeId         String            @db.ObjectId
+  Solicitacao             Solicitacao[]
+  TransferenciasOrigem    Transferencia[]   @relation("OrigemMedicoTransferencia")
+  TransferenciasDestino   Transferencia[]   @relation("DestinoMedicoTransferencia")
+  TransferenciasRegulador Transferencia[]   @relation("ReguladorMedicoTransferencia")
 }
 
 model DocumentoTransferencia {
-  id                            String   @id @default(auto()) @map("_id") @db.ObjectId
+  id                            String          @id @default(auto()) @map("_id") @db.ObjectId
   drogasAdministradas           String[]
   procedimentosAcondicionamento String[]
   procedimentosRecebimento      String[]
-  createdAt                     DateTime @default(now())
-  updatedAt                     DateTime @updatedAt
+  createdAt                     DateTime        @default(now())
+  updatedAt                     DateTime        @updatedAt
+  Solicitacao                   Solicitacao[]
+  Transferencia                 Transferencia[]
 }
 
 enum Classificacao {
@@ -133,15 +142,66 @@ enum TipoSanguineo {
 }
 
 model Paciente {
-  cpf           String        @id @map("_id")
+  cpf           String          @id @map("_id")
   nome          String
   telefone      String
   email         String
-  endereco      Endereco      @relation(fields: [enderecoId], references: [id])
+  endereco      Endereco        @relation(fields: [enderecoId], references: [id])
   tipoSanguineo TipoSanguineo
-  prontuario    Prontuario    @relation(fields: [prontuarioId], references: [id])
-  createdAt     DateTime      @default(now())
-  updatedAt     DateTime      @updatedAt
-  enderecoId    String        @db.ObjectId
-  prontuarioId  String        @db.ObjectId
+  prontuario    Prontuario      @relation(fields: [prontuarioId], references: [id])
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+  enderecoId    String          @db.ObjectId
+  prontuarioId  String          @db.ObjectId
+  Solicitacao   Solicitacao[]
+  Transferencia Transferencia[]
+}
+
+model Solicitacao {
+  id                 String                 @id @default(auto()) @map("_id") @db.ObjectId
+  medico             Medico                 @relation(fields: [medicoId], references: [crm])
+  paciente           Paciente               @relation(fields: [pacienteId], references: [cpf])
+  motivo             String
+  documento          DocumentoTransferencia @relation(fields: [documentoId], references: [id])
+  especialidade      Especialidade          @relation(fields: [especialidadeId], references: [id])
+  horarioSolicitacao DateTime
+  createdAt          DateTime               @default(now())
+  updatedAt          DateTime               @updatedAt
+  medicoId           String
+  pacienteId         String
+  documentoId        String                 @db.ObjectId
+  especialidadeId    String                 @db.ObjectId
+  Transferencia      Transferencia[]
+}
+
+enum MeioTransporte {
+  AMBULANCIA
+  HELICOPTERO
+  AVIAO
+}
+
+model Transferencia {
+  id                     String                 @id @default(auto()) @map("_id") @db.ObjectId
+  meioTransporte         MeioTransporte
+  destino                UnidadeHospitalar      @relation("DestinoTransferencia", fields: [destinoId], references: [id])
+  medicoDestino          Medico                 @relation("DestinoMedicoTransferencia", fields: [medicoDestinoId], references: [crm])
+  origem                 UnidadeHospitalar      @relation("OrigemTransferencia", fields: [origemId], references: [id])
+  medicoOrigem           Medico                 @relation("OrigemMedicoTransferencia", fields: [medicoOrigemId], references: [crm])
+  medicoRegulador        Medico                 @relation("ReguladorMedicoTransferencia", fields: [medicoReguladorId], references: [crm])
+  horarioSaida           DateTime
+  horarioPrevistoChegada DateTime
+  distancia              Float
+  documento              DocumentoTransferencia @relation(fields: [documentoId], references: [id])
+  paciente               Paciente               @relation(fields: [pacienteId], references: [cpf])
+  solicitacao            Solicitacao            @relation(fields: [solicitacaoId], references: [id])
+  createdAt              DateTime               @default(now())
+  updatedAt              DateTime               @updatedAt
+  destinoId              String                 @db.ObjectId
+  medicoDestinoId        String
+  origemId               String                 @db.ObjectId
+  medicoOrigemId         String
+  medicoReguladorId      String
+  documentoId            String                 @db.ObjectId
+  pacienteId             String
+  solicitacaoId          String                 @db.ObjectId
 }
