@@ -36,22 +36,112 @@ model MedicamentoPrescrito {
 }
 
 model Endereco {
-  id          String   @id @default(auto()) @map("_id") @db.ObjectId
-  cep         String
-  rua         String
-  numero      Int
-  bairro      String
-  cidade      String
-  estado      String
-  complemento String?
-  createdAt   DateTime @default(now())
-  updatedAt   DateTime @updatedAt
+  id                String              @id @default(auto()) @map("_id") @db.ObjectId
+  cep               String
+  rua               String
+  numero            Int
+  bairro            String
+  cidade            String
+  estado            String
+  complemento       String?
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  UnidadeHospitalar UnidadeHospitalar[]
+  Paciente          Paciente[]
 }
 
 model Especialidade {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  nome      String
-  descricao String
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                  String             @id @default(auto()) @map("_id") @db.ObjectId
+  nome                String
+  descricao           String
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+  UnidadeHospitalar   UnidadeHospitalar? @relation(fields: [unidadeHospitalarId], references: [id])
+  unidadeHospitalarId String?            @db.ObjectId
+  Medico              Medico[]
+}
+
+model UnidadeHospitalar {
+  id                    String          @id @default(auto()) @map("_id") @db.ObjectId
+  nome                  String
+  telefone              String
+  email                 String
+  endereco              Endereco        @relation(fields: [enderecoId], references: [id])
+  dadosPessoal          String
+  latitude              Float
+  longitude             Float
+  disponibilidadeLeitos Int
+  especialidades        Especialidade[]
+  temUTI                Boolean
+  createdAt             DateTime        @default(now())
+  updatedAt             DateTime        @updatedAt
+  enderecoId            String          @db.ObjectId
+  Medico                Medico[]
+}
+
+enum Papel {
+  USUARIO
+  REGULADOR
+}
+
+model Medico {
+  crm                 String            @id @map("_id")
+  nome                String
+  telefone            String
+  unidadeHospitalar   UnidadeHospitalar @relation(fields: [unidadeHospitalarId], references: [id])
+  papel               Papel
+  especialidade       Especialidade     @relation(fields: [especialidadeId], references: [id])
+  createdAt           DateTime          @default(now())
+  updatedAt           DateTime          @updatedAt
+  unidadeHospitalarId String            @db.ObjectId
+  especialidadeId     String            @db.ObjectId
+}
+
+model DocumentoTransferencia {
+  id                            String   @id @default(auto()) @map("_id") @db.ObjectId
+  drogasAdministradas           String[]
+  procedimentosAcondicionamento String[]
+  procedimentosRecebimento      String[]
+  createdAt                     DateTime @default(now())
+  updatedAt                     DateTime @updatedAt
+}
+
+enum Classificacao {
+  PRIMARIA
+  SECUNDARIA
+  TERCIARIA
+}
+
+model Prontuario {
+  id                 String        @id @default(auto()) @map("_id") @db.ObjectId
+  classificacao      Classificacao
+  medicamentosAtuais String[]
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
+  Paciente           Paciente[]
+}
+
+enum TipoSanguineo {
+  A_POSITIVO
+  A_NEGATIVO
+  B_POSITIVO
+  B_NEGATIVO
+  AB_POSITIVO
+  AB_NEGATIVO
+  O_POSITIVO
+  O_NEGATIVO
+}
+
+model Paciente {
+  cpf           String        @id @map("_id")
+  nome          String
+  telefone      String
+  email         String
+  endereco      Endereco      @relation(fields: [enderecoId], references: [id])
+  tipoSanguineo TipoSanguineo
+  prontuario    Prontuario    @relation(fields: [prontuarioId], references: [id])
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  enderecoId    String        @db.ObjectId
+  prontuarioId  String        @db.ObjectId
 }
