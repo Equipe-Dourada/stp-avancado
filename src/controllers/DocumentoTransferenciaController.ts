@@ -14,28 +14,30 @@ class DocumentoTransferenciaController {
             const documentoTransferencia = await this.documentoTransferenciaService.create(drogasAdministradas, procedimentosAcondicionamento, procedimentosRecebimento);
             return res.status(201).json(documentoTransferencia);
         } catch (error) {
-            return res.status(400).json({ error });
+            this.handleError(res, error);
         }
     }
 
     update = async (req: Request, res: Response) => {
         try {
             const id = req.params.id;
+            this.validateId(id);
             const { drogasAdministradas, procedimentosAcondicionamento, procedimentosRecebimento } = req.body;
             const documentoTransferencia = await this.documentoTransferenciaService.update(id, drogasAdministradas, procedimentosAcondicionamento, procedimentosRecebimento);
             return res.status(200).json(documentoTransferencia);
         } catch (error) {
-            return res.status(400).json({ error });
+            this.handleError(res, error);
         }
     }
 
     delete = async (req: Request, res: Response) => {
         try {
             const id = req.params.id;
+            this.validateId(id);
             await this.documentoTransferenciaService.delete(id);
             return res.status(204).send();
         } catch (error) {
-            return res.status(400).json({ error });
+            this.handleError(res, error);
         }
     }
 
@@ -44,17 +46,34 @@ class DocumentoTransferenciaController {
             const documentosTransferencia = await this.documentoTransferenciaService.getAll();
             return res.status(200).json(documentosTransferencia);
         } catch (error) {
-            return res.status(400).json({ error });
+            this.handleError(res, error);
         }
     }
 
     getById = async (req: Request, res: Response) => {
         try {
             const id = req.params.id;
+            this.validateId(id);
             const documentoTransferencia = await this.documentoTransferenciaService.getById(id);
             return res.status(200).json(documentoTransferencia);
         } catch (error) {
-            return res.status(400).json({ error });
+            this.handleError(res, error);
+        }
+    }
+
+    private handleError(res: Response, error: unknown) {
+        if (error instanceof Error) {
+            console.error(error.message);
+            return res.status(400).json({ error: error.message });
+        } else {
+            console.error(`Unexpected error: ${error}`);
+            return res.status(500).json({ error: "An unexpected error occurred." });
+        }
+    }
+
+    private validateId(id: string) {
+        if (id.length !== 24) {
+            throw new Error("Invalid id.");
         }
     }
 }
