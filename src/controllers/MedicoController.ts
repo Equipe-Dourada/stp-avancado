@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import { MedicoService } from "../services/MedicoService";
 
 class MedicoController {
@@ -14,30 +14,30 @@ class MedicoController {
             const medico = await this.medicoService.create(crm, nome, telefone, unidadeHospitalarId, papel, especialidadeId);
             return res.status(201).json(medico);
         } catch (error) {
-            this.handleError(res, error, "Erro ao criar o médico.");
+            this.handleError(res, error, "Erro ao criar Medico.");
         }
     }
 
     update = async (req: Request, res: Response) => {
         try {
-            const crm = req.params.crm;
+            const crm = req.params.id;
             this.validateCrm(crm);
             const { nome, telefone, unidadeHospitalarId, papel, especialidadeId } = req.body;
             const medico = await this.medicoService.update(crm, nome, telefone, unidadeHospitalarId, papel, especialidadeId);
             return res.status(200).json(medico);
         } catch (error) {
-            this.handleError(res, error, "Erro ao atualizar o médico.");
+            this.handleError(res, error, "Erro ao atualizar Medico.");
         }
     }
 
     delete = async (req: Request, res: Response) => {
         try {
-            const crm = req.params.crm;
+            const crm = req.params.id;
             this.validateCrm(crm);
             await this.medicoService.delete(crm);
             return res.status(204).send();
         } catch (error) {
-            this.handleError(res, error, "Erro ao deletar o médico.");
+            this.handleError(res, error, "Erro ao deletar Medico.");
         }
     }
 
@@ -46,18 +46,31 @@ class MedicoController {
             const medicos = await this.medicoService.getAll();
             return res.status(200).json(medicos);
         } catch (error) {
-            this.handleError(res, error, "Erro ao buscar os médicos.");
+            this.handleError(res, error, "Erro ao buscar todos Medicos.");
         }
     }
 
     getByCrm = async (req: Request, res: Response) => {
         try {
-            const crm = req.params.crm;
+            const crm = req.params.id;
             this.validateCrm(crm);
             const medico = await this.medicoService.getByCrm(crm);
             return res.status(200).json(medico);
         } catch (error) {
-            this.handleError(res, error, "Erro ao buscar o médico pelo CRM.");
+            this.handleError(res, error, "Erro ao buscar Medico pelo CRM.");
+        }
+    }
+
+    verifyIfExists = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const id = req.params.id;
+            const medico = await this.medicoService.getByCrm(id);
+            if (!medico) {
+                return res.status(404).json({ error: "Medico não encontrado." });
+            }
+            return next();
+        } catch (error) {
+            this.handleError(res, error, "Erro ao verificar Medico.");
         }
     }
 
@@ -66,15 +79,14 @@ class MedicoController {
             console.error(`${msg} ${error.message}`);
             return res.status(400).json({ error: error.message });
         } else {
-            console.error(`Unexpected error: ${error}`);
+            console.error(`Erro inesperado: ${error}`);
             return res.status(500).json({ error: "Ocorreu um erro inesperado." });
         }
     }
 
     private validateCrm(crm: string) {
-        const crmRegex = /^[0-9]{4,10}$/;
-        if (!crmRegex.test(crm)) {
-            throw new Error("CRM inválido.");
+        if (crm.length < 5 || crm.length > 7) {
+            throw new Error("CRM Inválido.");
         }
     }
 }

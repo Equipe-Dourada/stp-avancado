@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import { MedicamentoPrescritoService } from '../services/MedicamentoPrescritoService';
 
 class MedicamentoPrescritoController {
@@ -14,7 +14,7 @@ class MedicamentoPrescritoController {
             const medicamentoPrescrito = await this.medicamentoPrescritoService.create(medicamentoId, posologia, dosagem, unidadeDosagem, viaAdministracao);
             return res.status(201).json(medicamentoPrescrito);
         } catch (error) {
-            this.handleError(res, error, "Error creating prescribed medication.");
+            this.handleError(res, error, "Erro ao criar MedicamentoPrescrito.");
         }
     }
 
@@ -26,7 +26,7 @@ class MedicamentoPrescritoController {
             const medicamentoPrescrito = await this.medicamentoPrescritoService.update(id, medicamentoId, posologia, dosagem, unidadeDosagem, viaAdministracao);
             return res.status(200).json(medicamentoPrescrito);
         } catch (error) {
-            this.handleError(res, error, "Error updating prescribed medication.");
+            this.handleError(res, error, "Erro ao atualizar MedicamentoPrescrito.");
         }
     }
 
@@ -37,7 +37,7 @@ class MedicamentoPrescritoController {
             await this.medicamentoPrescritoService.delete(id);
             return res.status(204).send();
         } catch (error) {
-            this.handleError(res, error, "Error deleting prescribed medication.");
+            this.handleError(res, error, "Erro ao deletar MedicamentoPrescrito.");
         }
     }
 
@@ -46,7 +46,7 @@ class MedicamentoPrescritoController {
             const medicamentosPrescritos = await this.medicamentoPrescritoService.getAll();
             return res.status(200).json(medicamentosPrescritos);
         } catch (error) {
-            this.handleError(res, error, "Error fetching prescribed medications.");
+            this.handleError(res, error, "Erro ao buscar todos MedicamentosPrescritos.");
         }
     }
 
@@ -57,7 +57,20 @@ class MedicamentoPrescritoController {
             const medicamentoPrescrito = await this.medicamentoPrescritoService.getById(id);
             return res.status(200).json(medicamentoPrescrito);
         } catch (error) {
-            this.handleError(res, error, "Error fetching prescribed medication by ID.");
+            this.handleError(res, error, "Erro ao buscar MedicamentoPrescrito pelo ID.");
+        }
+    }
+
+    verifyIfExists = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const id = req.params.id;
+            const medicamentoPrescrito = await this.medicamentoPrescritoService.getById(id);
+            if (!medicamentoPrescrito) {
+                return res.status(404).json({ error: "MedicamentoPrescrito não encontrado." });
+            }
+            return next();
+        } catch (error) {
+            this.handleError(res, error, "Erro ao verificar MedicamentoPrescrito.");
         }
     }
 
@@ -66,14 +79,14 @@ class MedicamentoPrescritoController {
             console.error(`${msg} ${error.message}`);
             return res.status(400).json({ error: error.message });
         } else {
-            console.error(`Unexpected error: ${error}`);
-            return res.status(500).json({ error: "An unexpected error occurred." });
+            console.error(`Erro inesperado: ${error}`);
+            return res.status(500).json({ error: "Ocorreu um erro inesperado." });
         }
     }
 
     private validateId(id: string) {
         if (id.length !== 24) {
-            throw new Error("Invalid ID.");
+            throw new Error("ID Inválido.");
         }
     }
 }

@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import { MedicamentoService } from '../services/MedicamentoService';
 
 class MedicamentoController {
@@ -14,7 +14,7 @@ class MedicamentoController {
             const medicamento = await this.medicamentoService.create(nome, principioAtivo, descricao);
             return res.status(201).json(medicamento);
         } catch (error) {
-            this.handleError(res, error, "Error creating medication.");
+            this.handleError(res, error, "Erro ao criar Medicamento.");
         }
     }
 
@@ -26,7 +26,7 @@ class MedicamentoController {
             const medicamento = await this.medicamentoService.update(id, nome, principioAtivo, descricao);
             return res.status(200).json(medicamento);
         } catch (error) {
-            this.handleError(res, error, "Error updating medication.");
+            this.handleError(res, error, "Erro ao atualizar Medicamento.");
         }
     }
 
@@ -37,7 +37,7 @@ class MedicamentoController {
             await this.medicamentoService.delete(id);
             return res.status(204).send();
         } catch (error) {
-            this.handleError(res, error, "Error deleting medication.");
+            this.handleError(res, error, "Erro ao deletar Medicamento.");
         }
     }
 
@@ -46,7 +46,7 @@ class MedicamentoController {
             const medicamentos = await this.medicamentoService.getAll();
             return res.status(200).json(medicamentos);
         } catch (error) {
-            this.handleError(res, error, "Error fetching medications.");
+            this.handleError(res, error, "Erro ao buscar todos Medicamentos.");
         }
     }
 
@@ -57,7 +57,20 @@ class MedicamentoController {
             const medicamento = await this.medicamentoService.getById(id);
             return res.status(200).json(medicamento);
         } catch (error) {
-            this.handleError(res, error, "Error fetching medication by ID.");
+            this.handleError(res, error, "Erro ao buscar Medicamento pelo ID.");
+        }
+    }
+
+    verifyIfExists = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const id = req.params.id;
+            const medicamento = await this.medicamentoService.getById(id);
+            if (!medicamento) {
+                return res.status(404).json({ error: "Medicamento não encontrado." });
+            }
+            return next();
+        } catch (error) {
+            this.handleError(res, error, "Erro ao verificar Medicamento.");
         }
     }
 
@@ -66,14 +79,14 @@ class MedicamentoController {
             console.error(`${msg} ${error.message}`);
             return res.status(400).json({ error: error.message });
         } else {
-            console.error(`Unexpected error: ${error}`);
-            return res.status(500).json({ error: "An unexpected error occurred." });
+            console.error(`Erro inesperado: ${error}`);
+            return res.status(500).json({ error: "Ocorreu um erro inesperado." });
         }
     }
 
     private validateId(id: string) {
         if (id.length !== 24) {
-            throw new Error("Invalid ID.");
+            throw new Error("ID Inválido.");
         }
     }
 }

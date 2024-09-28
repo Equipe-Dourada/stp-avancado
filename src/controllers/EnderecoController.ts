@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import { EnderecoService } from '../services/EnderecoService';
 
 class EnderecoController {
@@ -14,7 +14,7 @@ class EnderecoController {
             const endereco = await this.enderecoService.create(cep, rua, numero, bairro, cidade, estado, complemento);
             return res.status(201).json(endereco);
         } catch (error) {
-            this.handleError(res, error, "Error creating address.");
+            this.handleError(res, error, "Erro ao criar Endereco.");
         }
     }
 
@@ -26,7 +26,7 @@ class EnderecoController {
             const endereco = await this.enderecoService.update(id, cep, rua, numero, bairro, cidade, estado, complemento);
             return res.status(200).json(endereco);
         } catch (error) {
-            this.handleError(res, error, "Error updating address.");
+            this.handleError(res, error, "Erro ao atualizar Endereco.");
         }
     }
 
@@ -37,7 +37,7 @@ class EnderecoController {
             await this.enderecoService.delete(id);
             return res.status(204).send();
         } catch (error) {
-            this.handleError(res, error, "Error deleting address.");
+            this.handleError(res, error, "Erro ao atualizar Endereco.");
         }
     }
 
@@ -46,7 +46,7 @@ class EnderecoController {
             const enderecos = await this.enderecoService.getAll();
             return res.status(200).json(enderecos);
         } catch (error) {
-            this.handleError(res, error, "Error fetching addresses.");
+            this.handleError(res, error, "Erro ao buscar todos Enderecos.");
         }
     }
 
@@ -57,23 +57,36 @@ class EnderecoController {
             const endereco = await this.enderecoService.getById(id);
             return res.status(200).json(endereco);
         } catch (error) {
-            this.handleError(res, error, "Error fetching address by ID.");
+            this.handleError(res, error, "Erro ao buscar Endereco pelo ID.");
         }
     }
 
-    private handleError(res: Response, error: unknown, msg: string) {
+    verifyIfExists = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const id = req.params.id;
+            const endereco = await this.enderecoService.getById(id);
+            if (!endereco) {
+                return res.status(404).json({ error: "Endereco não encontrado." });
+            }
+            return next();
+        } catch (error) {
+            this.handleError(res, error, "Erro ao verificar Endereco.");
+        }
+    }
+
+    private handleError(res:Response, error:unknown, msg: string) {
         if (error instanceof Error) {
-            console.error(`${msg} ${error.message}`);
-            return res.status(400).json({ error: error.message });
+            console.error(`${msg}. ${error.message}`);
+            return res.status(400).json({error: error.message});
         } else {
-            console.error(`Unexpected error: ${error}`);
-            return res.status(500).json({ error: "An unexpected error occurred." });
+            console.error(`Unexpected error occurred: ${error}`);
+            return res.status(500).json({error: "An unexpected error occurred."});
         }
     }
 
     private validateId(id: string) {
         if (id.length !== 24) {
-            throw new Error("Invalid ID.");
+            throw new Error("ID Inválido.");
         }
     }
 }

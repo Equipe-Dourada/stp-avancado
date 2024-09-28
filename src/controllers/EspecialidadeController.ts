@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import { EspecialidadeService } from '../services/EspecialidadeService';
 
 class EspecialidadeController {
@@ -14,7 +14,7 @@ class EspecialidadeController {
             const especialidade = await this.especialidadeService.create(nome, descricao);
             return res.status(201).json(especialidade);
         } catch (error) {
-            this.handleError(res, error, "Error creating specialty.");
+            this.handleError(res, error, "Erro ao criar Especialidade.");
         }
     }
 
@@ -26,7 +26,7 @@ class EspecialidadeController {
             const especialidade = await this.especialidadeService.update(id, nome, descricao);
             return res.status(200).json(especialidade);
         } catch (error) {
-            this.handleError(res, error, "Error updating specialty.");
+            this.handleError(res, error, "Erro ao atualizar Especialidade.");
         }
     }
 
@@ -37,7 +37,7 @@ class EspecialidadeController {
             await this.especialidadeService.delete(id);
             return res.status(204).send();
         } catch (error) {
-            this.handleError(res, error, "Error deleting specialty.");
+            this.handleError(res, error, "Erro ao deletar Especialidade.");
         }
     }
 
@@ -46,7 +46,7 @@ class EspecialidadeController {
             const especialidades = await this.especialidadeService.getAll();
             return res.status(200).json(especialidades);
         } catch (error) {
-            this.handleError(res, error, "Error fetching specialties.");
+            this.handleError(res, error, "Erro ao buscar todas Especialidades.");
         }
     }
 
@@ -57,23 +57,37 @@ class EspecialidadeController {
             const especialidade = await this.especialidadeService.getById(id);
             return res.status(200).json(especialidade);
         } catch (error) {
-            this.handleError(res, error, "Error fetching specialty by ID.");
+            this.handleError(res, error, "Erro ao buscar Especialidade pelo ID.");
         }
     }
+
+    verifyIfExists = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const id = req.params.id;
+            const especialidade = await this.especialidadeService.getById(id);
+            if (!especialidade) {
+                return res.status(404).json({ error: "Especialidade não encontrada." });
+            }
+            return next();
+        } catch (error) {
+            this.handleError(res, error, "Erro ao verificar Especialidade.");
+        }
+    }
+
 
     private handleError(res: Response, error: unknown, msg: string) {
         if (error instanceof Error) {
             console.error(`${msg} ${error.message}`);
             return res.status(400).json({ error: error.message });
         } else {
-            console.error(`Unexpected error: ${error}`);
-            return res.status(500).json({ error: "An unexpected error occurred." });
+            console.error(`Erro inesperado: ${error}`);
+            return res.status(500).json({ error: "Ocorreu um erro inesperado." });
         }
     }
 
     private validateId(id: string) {
         if (id.length !== 24) {
-            throw new Error("Invalid ID.");
+            throw new Error("ID Inválido.");
         }
     }
 }

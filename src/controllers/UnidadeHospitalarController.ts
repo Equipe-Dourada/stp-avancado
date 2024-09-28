@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import { UnidadeHospitalarService } from "../services/UnidadeHospitalarService";
 
 class UnidadeHospitalarController {
@@ -16,7 +16,7 @@ class UnidadeHospitalarController {
                 dadosPessoal, latitude, longitude, disponibilidadeLeitos, especialidades, temUTI);
             return res.status(201).json(unidadeHospitalar);
         } catch (error) {
-            this.handleError(res, error, "Error creating Unidade Hospitalar.");
+            this.handleError(res, error, "Erro ao criar UnidadeHospitalar.");
         }
     }
 
@@ -30,7 +30,7 @@ class UnidadeHospitalarController {
                 dadosPessoal, latitude, longitude, disponibilidadeLeitos, especialidades, temUTI);
             return res.status(200).json(unidadeHospitalar);
         } catch (error) {
-            this.handleError(res, error, "Error updating Unidade Hospitalar.");
+            this.handleError(res, error, "Erro ao atualizar UnidadeHospitalar.");
         }
     }
 
@@ -41,7 +41,7 @@ class UnidadeHospitalarController {
             await this.unidadeHospitalarService.delete(id);
             return res.status(204).send();
         } catch (error) {
-            this.handleError(res, error, "Error deleting Unidade Hospitalar.");
+            this.handleError(res, error, "Erro ao deletar UnidadeHospitalar.");
         }
     }
 
@@ -50,7 +50,7 @@ class UnidadeHospitalarController {
             const unidadesHospitalares = await this.unidadeHospitalarService.getAll();
             return res.status(200).json(unidadesHospitalares);
         } catch (error) {
-            this.handleError(res, error, "Error fetching all Unidades Hospitalares.");
+            this.handleError(res, error, "Erro ao buscar todas UnidadesHospitalares.");
         }
     }
 
@@ -61,7 +61,21 @@ class UnidadeHospitalarController {
             const unidadeHospitalar = await this.unidadeHospitalarService.getById(id);
             return res.status(200).json(unidadeHospitalar);
         } catch (error) {
-            this.handleError(res, error, "Error fetching Unidade Hospitalar by id.");
+            this.handleError(res, error, "Erro ao buscar UnidadeHospitalar pelo id.");
+        }
+    }
+
+    verifyIfExists = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const id = req.params.id;
+            this.validateId(id);
+            const unidadeHospitalar = await this.unidadeHospitalarService.getById(id);
+            if (!unidadeHospitalar) {
+                return res.status(404).json({ error: "UnidadeHospitalar não encontrada." });
+            }
+            return next();
+        } catch (error) {
+            this.handleError(res, error, "Erro ao verificar UnidadeHospitalar.");
         }
     }
 
@@ -70,14 +84,14 @@ class UnidadeHospitalarController {
             console.error(`${msg}. ${error.message}`);
             return res.status(400).json({ error: error.message });
         } else {
-            console.error(`Unexpected error: ${error}`);
-            return res.status(500).json({ error: "An unexpected error occurred." });
+            console.error(`Erro inesperado: ${error}`);
+            return res.status(500).json({ error: "Ocorreu um erro inesperado." });
         }
     }
 
     private validateId(id: string) {
         if (id.length !== 24) {
-            throw new Error("Invalid ID.");
+            throw new Error("ID Inválido.");
         }
     }
 }

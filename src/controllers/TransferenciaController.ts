@@ -1,4 +1,4 @@
-import { Request, Response } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import { TransferenciaService } from '../services/TransferenciaService';
 
 class TransferenciaController {
@@ -19,7 +19,7 @@ class TransferenciaController {
 
             return res.status(201).json(transferencia);
         } catch (error) {
-            this.handleError(res, error, "Erro ao criar transferência.");
+            this.handleError(res, error, "Erro ao criar Transferencia.");
         }
     }
 
@@ -37,7 +37,7 @@ class TransferenciaController {
 
             return res.status(200).json(transferencia);
         } catch (error) {
-            this.handleError(res, error, "Erro ao atualizar transferência.");
+            this.handleError(res, error, "Erro ao atualizar Transferencia.");
         }
     }
 
@@ -49,7 +49,7 @@ class TransferenciaController {
             await this.transferenciaService.delete(id);
             return res.status(204).send();
         } catch (error) {
-            this.handleError(res, error, "Erro ao deletar transferência.");
+            this.handleError(res, error, "Erro ao deletar Transferencia.");
         }
     }
 
@@ -58,7 +58,7 @@ class TransferenciaController {
             const transferencias = await this.transferenciaService.getAll();
             return res.status(200).json(transferencias);
         } catch (error) {
-            this.handleError(res, error, "Erro ao buscar transferências.");
+            this.handleError(res, error, "Erro ao buscar todas Transferencias.");
         }
     }
 
@@ -70,7 +70,20 @@ class TransferenciaController {
             const transferencia = await this.transferenciaService.getById(id);
             return res.status(200).json(transferencia);
         } catch (error) {
-            this.handleError(res, error, "Erro ao buscar transferência.");
+            this.handleError(res, error, "Erro ao buscar Transferencia.");
+        }
+    }
+
+    verifyIfExists = async (req: Request, res: Response, next: NextFunction) => {
+        try {
+            const id = req.params.id;
+            const transferencia = await this.transferenciaService.getById(id);
+            if (!transferencia) {
+                return res.status(404).json({ error: "Transferencia não encontrada." });
+            }
+            return next();
+        } catch (error) {
+            this.handleError(res, error, "Erro ao verificar Transferencia.");
         }
     }
 
@@ -86,7 +99,7 @@ class TransferenciaController {
 
     private validateId(id: string) {
         if (id.length !== 24) {
-            throw new Error("ID inválido.");
+            throw new Error("ID Inválido.");
         }
     }
 }
