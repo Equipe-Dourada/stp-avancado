@@ -11,6 +11,10 @@ class DocumentoTransferenciaController {
     create = async (req: Request, res: Response) => {
         try {
             const { drogasAdministradas, procedimentosAcondicionamento, procedimentosRecebimento } = req.body;
+            const validation = this.isValidInput(drogasAdministradas, procedimentosAcondicionamento, procedimentosRecebimento);
+            if(!validation.isValid) {
+                return res.status(400).json({error: validation.msg});
+            }
             const documentoTransferencia = await this.documentoTransferenciaService.create(drogasAdministradas, procedimentosAcondicionamento, procedimentosRecebimento);
             return res.status(201).json(documentoTransferencia);
         } catch (error) {
@@ -23,6 +27,10 @@ class DocumentoTransferenciaController {
             const id = req.params.id;
             this.validateId(id);
             const { drogasAdministradas, procedimentosAcondicionamento, procedimentosRecebimento } = req.body;
+            const validation = this.isValidInput(drogasAdministradas, procedimentosAcondicionamento, procedimentosRecebimento);
+            if(!validation.isValid) {
+                return res.status(400).json({error: validation.msg});
+            }
             const documentoTransferencia = await this.documentoTransferenciaService.update(id, drogasAdministradas, procedimentosAcondicionamento, procedimentosRecebimento);
             return res.status(200).json(documentoTransferencia);
         } catch (error) {
@@ -88,6 +96,20 @@ class DocumentoTransferenciaController {
         if (id.length !== 24) {
             throw new Error("ID Inválido.");
         }
+    }
+
+    private isValidInput(drogasAdministradas: any, procedimentosAcondicionamento: any, procedimentosRecebimento: any) {
+        if (!Array.isArray(drogasAdministradas) || !drogasAdministradas.every(item => typeof item === "string")) {
+            return { isValid: false, msg: "Invalid drogasAdministradas: must be an array of non-empty strings." };
+        }
+        if (!Array.isArray(procedimentosAcondicionamento) || !procedimentosAcondicionamento.every(item => typeof item === "string")) {
+            return { isValid: false, msg: "Invalid procedimentosAcondicionamento: must be an array of non-empty strings." };
+        }
+        if (!Array.isArray(procedimentosRecebimento) || !procedimentosRecebimento.every(item => typeof item === "string")) {
+            return { isValid: false, msg: "Invalid procedimentosRecebimento: must be an array of non-empty strings." };
+        }
+
+        return {isValid: true};
     }
 }
 

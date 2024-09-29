@@ -11,6 +11,10 @@ class MedicamentoPrescritoController {
     create = async (req: Request, res: Response) => {
         try {
             const { medicamentoId, posologia, dosagem, unidadeDosagem, viaAdministracao } = req.body;
+            const validation = this.isValidInput(posologia, dosagem, unidadeDosagem, viaAdministracao);
+            if(!validation.isValid) {
+                return res.status(400).json({error: validation.msg});
+            }
             const medicamentoPrescrito = await this.medicamentoPrescritoService.create(medicamentoId, posologia, dosagem, unidadeDosagem, viaAdministracao);
             return res.status(201).json(medicamentoPrescrito);
         } catch (error) {
@@ -23,6 +27,10 @@ class MedicamentoPrescritoController {
             const id = req.params.id;
             this.validateId(id);
             const { medicamentoId, posologia, dosagem, unidadeDosagem, viaAdministracao } = req.body;
+            const validation = this.isValidInput(posologia, dosagem, unidadeDosagem, viaAdministracao);
+            if(!validation.isValid) {
+                return res.status(400).json({error: validation.msg});
+            }
             const medicamentoPrescrito = await this.medicamentoPrescritoService.update(id, medicamentoId, posologia, dosagem, unidadeDosagem, viaAdministracao);
             return res.status(200).json(medicamentoPrescrito);
         } catch (error) {
@@ -88,6 +96,22 @@ class MedicamentoPrescritoController {
         if (id.length !== 24) {
             throw new Error("ID Inválido.");
         }
+    }
+
+    private isValidInput(posologia: any, dosagem: any, unidadeDosagem: any, viaAdministracao: any) {
+        if(typeof posologia !== "string" || posologia.trim().length == 0) {
+            return {isValid: false, msg: "Invalid posologia: must be a non empty string."}
+        }
+        if (typeof dosagem !== "number" || dosagem < 0) {
+            return { isValid: false, msg: "Invalid dosagem: must be a positive number." };
+        }
+        if(typeof unidadeDosagem !== "string" || unidadeDosagem.trim().length == 0) {
+            return {isValid: false, msg: "Invalid unidadeDosagem: must be a non empty string."}
+        }
+        if(typeof viaAdministracao !== "string" || viaAdministracao.trim().length == 0) {
+            return {isValid: false, msg: "Invalid viaAdministracao: must be a non empty string."}
+        }
+        return  {isValid: true }
     }
 }
 

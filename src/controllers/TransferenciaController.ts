@@ -12,11 +12,13 @@ class TransferenciaController {
         try {
             const { meioTransporte, destinoId, medicoDestinoId, origemId, medicoOrigemId, medicoReguladorId, horarioSaida,
                 horarioPrevistoChegada, distancia, documentoId, pacienteId, solicitacaoId } = req.body;
-
+            const validation = this.isValidInput(horarioSaida, horarioPrevistoChegada, distancia);
+            if(!validation.isValid) {
+                return res.status(400).json({error: validation.msg});
+            }
             const transferencia = await this.transferenciaService.create(meioTransporte, destinoId, medicoDestinoId,
                 origemId, medicoOrigemId, medicoReguladorId, horarioSaida, horarioPrevistoChegada, distancia, documentoId,
                 pacienteId, solicitacaoId);
-
             return res.status(201).json(transferencia);
         } catch (error) {
             this.handleError(res, error, "Erro ao criar Transferencia.");
@@ -27,10 +29,12 @@ class TransferenciaController {
         try {
             const id = req.params.id;
             this.validateId(id);
-
             const { meioTransporte, destinoId, medicoDestinoId, origemId, medicoOrigemId, medicoReguladorId, horarioSaida,
                 horarioPrevistoChegada, distancia, documentoId, pacienteId, solicitacaoId } = req.body;
-
+            const validation = this.isValidInput(horarioSaida, horarioPrevistoChegada, distancia);
+            if(!validation.isValid) {
+                return res.status(400).json({error: validation.msg});
+            }
             const transferencia = await this.transferenciaService.update(id, meioTransporte, destinoId, medicoDestinoId,
                 origemId, medicoOrigemId, medicoReguladorId, horarioSaida, horarioPrevistoChegada, distancia, documentoId,
                 pacienteId, solicitacaoId);
@@ -101,6 +105,19 @@ class TransferenciaController {
         if (id.length !== 24) {
             throw new Error("ID Inválido.");
         }
+    }
+
+    private isValidInput(horarioSaida: any, horarioPrevistoChegada: any, distancia: any) {
+        if(typeof horarioSaida !== "string" || horarioSaida.trim().length == 0) {
+            return {isValid: false, msg: "Invalid horarioSaida: must be a non empty string."}
+        }
+        if(typeof horarioPrevistoChegada !== "string" || horarioPrevistoChegada.trim().length == 0) {
+            return {isValid: false, msg: "Invalid horarioPrevistoChegada: must be a non empty string."}
+        }
+        if (typeof distancia !== "number" || distancia < 0) {
+            return { isValid: false, msg: "Invalid distancia: must be a positive number" };
+        }
+        return  {isValid: true };
     }
 }
 

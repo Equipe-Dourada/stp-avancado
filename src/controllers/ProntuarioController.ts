@@ -11,6 +11,10 @@ class ProntuarioController {
     create = async (req: Request, res: Response) => {
         try {
             const { classificacao, medicamentosAtuais } = req.body;
+            const validation = this.isValidInput(classificacao, medicamentosAtuais);
+            if(!validation.isValid) {
+                return res.status(400).json({error: validation.msg});
+            }
             const prontuario = await this.prontuarioService.create(classificacao, medicamentosAtuais);
             return res.status(201).json(prontuario);
         } catch (error) {
@@ -23,6 +27,10 @@ class ProntuarioController {
             const id = req.params.id;
             this.validateId(id);
             const { classificacao, medicamentosAtuais } = req.body;
+            const validation = this.isValidInput(classificacao, medicamentosAtuais);
+            if(!validation.isValid) {
+                return res.status(400).json({error: validation.msg});
+            }
             const prontuario = await this.prontuarioService.update(id, classificacao, medicamentosAtuais);
             return res.status(200).json(prontuario);
         } catch (error) {
@@ -88,6 +96,16 @@ class ProntuarioController {
         if (id.length !== 24) {
             throw new Error("ID Inválido.");
         }
+    }
+
+    private isValidInput(classificacao: any, medicamentosAtuais: any) {
+        if(typeof classificacao !== "string" || classificacao.trim().length == 0) {
+            return {isValid: false, msg: "Invalid classificacao: must be a non empty string."}
+        }
+        if (!Array.isArray(medicamentosAtuais) || !medicamentosAtuais.every(item => typeof item === "string")) {
+            return { isValid: false, msg: "Invalid medicamentosAtuais: must be an array of non-empty strings." };
+        }
+        return  {isValid: true };
     }
 }
 

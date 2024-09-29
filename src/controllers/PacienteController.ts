@@ -12,6 +12,10 @@ class PacienteController {
         try {
             const { cpf, nome, telefone, email, enderecoId, tipoSanguineo, prontuarioId } = req.body;
             this.validateCpf(cpf);
+            const validation = this.isValidInput(nome, telefone, email);
+            if(!validation.isValid) {
+                return res.status(400).json({error: validation.msg});
+            }
             const paciente = await this.pacienteService.create(cpf, nome, telefone, email, enderecoId, tipoSanguineo, prontuarioId);
             return res.status(201).json(paciente);
         } catch (error) {
@@ -24,6 +28,10 @@ class PacienteController {
             const cpf = req.params.id;
             this.validateCpf(cpf);
             const { nome, telefone, email, enderecoId, tipoSanguineo, prontuarioId } = req.body;
+            const validation = this.isValidInput(nome, telefone, email);
+            if(!validation.isValid) {
+                return res.status(400).json({error: validation.msg});
+            }
             const paciente = await this.pacienteService.update(cpf, nome, telefone, email, enderecoId, tipoSanguineo, prontuarioId);
             return res.status(200).json(paciente);
         } catch (error) {
@@ -89,6 +97,19 @@ class PacienteController {
         if (cpf.length !== 11) {
             throw new Error("CPF Inválido.");
         }
+    }
+
+    private isValidInput(nome: any, telefone: any, email: any) {
+        if(typeof nome !== "string" || nome.trim().length == 0) {
+            return {isValid: false, msg: "Invalid nome: must be a non empty string."}
+        }
+        if(typeof telefone !== "string" || telefone.trim().length == 0) {
+            return {isValid: false, msg: "Invalid telefone: must be a non empty string."}
+        }
+        if(typeof email !== "string" || email.trim().length == 0) {
+            return {isValid: false, msg: "Invalid email: must be a non empty string."}
+        }
+        return  {isValid: true };
     }
 }
 

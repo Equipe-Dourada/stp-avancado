@@ -12,6 +12,10 @@ class UnidadeHospitalarController {
         try {
             const { nome, telefone, email, endereco, dadosPessoal, latitude, longitude, disponibilidadeLeitos,
                 especialidades, temUTI } = req.body;
+            const validation = this.isValidInput(nome, telefone, email, dadosPessoal, latitude, longitude, disponibilidadeLeitos);
+            if(!validation.isValid) {
+                return res.status(400).json({error: validation.msg});
+            }
             const unidadeHospitalar = await this.unidadeHospitalarService.create(nome, telefone, email, endereco,
                 dadosPessoal, latitude, longitude, disponibilidadeLeitos, especialidades, temUTI);
             return res.status(201).json(unidadeHospitalar);
@@ -26,6 +30,10 @@ class UnidadeHospitalarController {
             this.validateId(id);
             const { nome, telefone, email, endereco, dadosPessoal, latitude, longitude, disponibilidadeLeitos,
                 especialidades, temUTI } = req.body;
+            const validation = this.isValidInput(nome, telefone, email, dadosPessoal, latitude, longitude, disponibilidadeLeitos);
+            if(!validation.isValid) {
+                return res.status(400).json({error: validation.msg});
+            }
             const unidadeHospitalar = await this.unidadeHospitalarService.update(id, nome, telefone, email, endereco,
                 dadosPessoal, latitude, longitude, disponibilidadeLeitos, especialidades, temUTI);
             return res.status(200).json(unidadeHospitalar);
@@ -93,6 +101,31 @@ class UnidadeHospitalarController {
         if (id.length !== 24) {
             throw new Error("ID Inválido.");
         }
+    }
+
+    private isValidInput(nome: any, telefone: any, email: any, dadosPessoal: any, latitude: any, longitude: any, disponibilidadeLeitos: any) {
+        if(typeof nome !== "string" || nome.trim().length == 0) {
+            return {isValid: false, msg: "Invalid nome: must be a non empty string."}
+        }
+        if(typeof telefone !== "string" || telefone.trim().length == 0) {
+            return {isValid: false, msg: "Invalid telefone: must be a non empty string."}
+        }
+        if(typeof email !== "string" || email.trim().length == 0) {
+            return {isValid: false, msg: "Invalid email: must be a non empty string."}
+        }
+        if(typeof dadosPessoal !== "string" || dadosPessoal.trim().length == 0) {
+            return {isValid: false, msg: "Invalid dadosPessoal: must be a non empty string."}
+        }
+        if (typeof latitude !== "number" || latitude < -90 || latitude > 90) {
+            return { isValid: false, msg: "Invalid latitude: must be a number between -90 and 90." };
+        }
+        if (typeof longitude !== "number" || longitude < -180 || longitude > 180) {
+            return { isValid: false, msg: "Invalid longitude: must be a number between -180 and 180." };
+        }
+        if (typeof disponibilidadeLeitos !== "number" || disponibilidadeLeitos < 0) {
+            return { isValid: false, msg: "Invalid disponibilidadeLeitos: must be a positive number." };
+        }
+        return  {isValid: true };
     }
 }
 

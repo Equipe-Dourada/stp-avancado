@@ -11,6 +11,10 @@ class MedicoController {
     create = async (req: Request, res: Response) => {
         try {
             const { crm, nome, telefone, unidadeHospitalarId, papel, especialidadeId } = req.body;
+            const validation = this.isValidInput(nome, telefone);
+            if(!validation.isValid) {
+                return res.status(400).json({error: validation.msg});
+            }
             const medico = await this.medicoService.create(crm, nome, telefone, unidadeHospitalarId, papel, especialidadeId);
             return res.status(201).json(medico);
         } catch (error) {
@@ -23,6 +27,10 @@ class MedicoController {
             const crm = req.params.id;
             this.validateCrm(crm);
             const { nome, telefone, unidadeHospitalarId, papel, especialidadeId } = req.body;
+            const validation = this.isValidInput(nome, telefone);
+            if(!validation.isValid) {
+                return res.status(400).json({error: validation.msg});
+            }
             const medico = await this.medicoService.update(crm, nome, telefone, unidadeHospitalarId, papel, especialidadeId);
             return res.status(200).json(medico);
         } catch (error) {
@@ -88,6 +96,16 @@ class MedicoController {
         if (crm.length < 5 || crm.length > 7) {
             throw new Error("CRM Inválido.");
         }
+    }
+
+    private isValidInput(nome: any, telefone: any) {
+        if(typeof nome !== "string" || nome.trim().length == 0) {
+            return {isValid: false, msg: "Invalid nome: must be a non empty string."}
+        }
+        if(typeof telefone !== "string" || telefone.trim().length == 0) {
+            return {isValid: false, msg: "Invalid telefone: must be a non empty string."}
+        }
+        return  {isValid: true };
     }
 }
 

@@ -11,6 +11,10 @@ class EspecialidadeController {
     create = async (req: Request, res: Response) => {
         try {
             const { nome, descricao } = req.body;
+            const validation = this.isValidInput(nome, descricao);
+            if(!validation.isValid) {
+                return res.status(400).json({error: validation.msg});
+            }
             const especialidade = await this.especialidadeService.create(nome, descricao);
             return res.status(201).json(especialidade);
         } catch (error) {
@@ -23,6 +27,10 @@ class EspecialidadeController {
             const id = req.params.id;
             this.validateId(id);
             const { nome, descricao } = req.body;
+            const validation = this.isValidInput(nome, descricao);
+            if(!validation.isValid) {
+                return res.status(400).json({error: validation.msg});
+            }
             const especialidade = await this.especialidadeService.update(id, nome, descricao);
             return res.status(200).json(especialidade);
         } catch (error) {
@@ -74,7 +82,6 @@ class EspecialidadeController {
         }
     }
 
-
     private handleError(res: Response, error: unknown, msg: string) {
         if (error instanceof Error) {
             console.error(`${msg} ${error.message}`);
@@ -89,6 +96,16 @@ class EspecialidadeController {
         if (id.length !== 24) {
             throw new Error("ID Inválido.");
         }
+    }
+
+    private isValidInput(nome: any, descricao: any) {
+        if(typeof nome !== "string" || nome.trim().length == 0) {
+            return {isValid: false, msg: "Invalid nome: must be a non empty string."}
+        }
+        if(typeof descricao !== "string" || descricao.trim().length == 0) {
+            return {isValid: false, msg: "Invalid descricao: must be a non empty string."}
+        }
+        return  {isValid: true };
     }
 }
 

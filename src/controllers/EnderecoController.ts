@@ -11,6 +11,10 @@ class EnderecoController {
     create = async (req: Request, res: Response) => {
         try {
             const { cep, rua, numero, bairro, cidade, estado, complemento } = req.body;
+            const validation = this.isValidInput(cep, rua, numero, bairro, cidade, estado, complemento);
+            if(!validation.isValid) {
+                return res.status(400).json({error: validation.msg});
+            }
             const endereco = await this.enderecoService.create(cep, rua, numero, bairro, cidade, estado, complemento);
             return res.status(201).json(endereco);
         } catch (error) {
@@ -23,6 +27,10 @@ class EnderecoController {
             const id = req.params.id;
             this.validateId(id);
             const { cep, rua, numero, bairro, cidade, estado, complemento } = req.body;
+            const validation = this.isValidInput(cep, rua, numero, bairro, cidade, estado, complemento);
+            if(!validation.isValid) {
+                return res.status(400).json({error: validation.msg});
+            }
             const endereco = await this.enderecoService.update(id, cep, rua, numero, bairro, cidade, estado, complemento);
             return res.status(200).json(endereco);
         } catch (error) {
@@ -88,6 +96,19 @@ class EnderecoController {
         if (id.length !== 24) {
             throw new Error("ID Inválido.");
         }
+    }
+
+    private isValidInput(cep: any, rua: any, numero: any, bairro: any, cidade: any, estado: any, complemento: any) {
+        if(typeof cep !== "string" || cep.trim().length == 0) {
+            return {isValid: false, msg: "Invalid cep: must be a non empty string."}
+        }
+        if(typeof rua !== "string" || rua.trim().length == 0) {
+            return {isValid: false, msg: "Invalid rua: must be a non empty string."}
+        }
+        if (typeof numero !== "number" || numero < 0) {
+            return { isValid: false, msg: "Invalid numero: must be a positive number" };
+        }
+        return  {isValid: true };
     }
 }
 

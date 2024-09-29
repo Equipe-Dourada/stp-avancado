@@ -11,6 +11,10 @@ class MedicamentoController {
     create = async (req: Request, res: Response) => {
         try {
             const { nome, principioAtivo, descricao } = req.body;
+            const validation = this.isValidInput(nome, principioAtivo, descricao);
+            if(!validation.isValid) {
+                return res.status(400).json({error: validation.msg});
+            }
             const medicamento = await this.medicamentoService.create(nome, principioAtivo, descricao);
             return res.status(201).json(medicamento);
         } catch (error) {
@@ -23,6 +27,10 @@ class MedicamentoController {
             const id = req.params.id;
             this.validateId(id);
             const { nome, principioAtivo, descricao } = req.body;
+            const validation = this.isValidInput(nome, principioAtivo, descricao);
+            if(!validation.isValid) {
+                return res.status(400).json({error: validation.msg});
+            }
             const medicamento = await this.medicamentoService.update(id, nome, principioAtivo, descricao);
             return res.status(200).json(medicamento);
         } catch (error) {
@@ -88,6 +96,19 @@ class MedicamentoController {
         if (id.length !== 24) {
             throw new Error("ID Inválido.");
         }
+    }
+
+    private isValidInput(nome: any, principioAtivo: any, descricao: any) {
+        if(typeof nome !== "string" || nome.trim().length == 0) {
+            return {isValid: false, msg: "Invalid nome: must be a non empty string."}
+        }
+        if(typeof principioAtivo !== "string" || principioAtivo.trim().length == 0) {
+            return {isValid: false, msg: "Invalid principioAtivo: must be a non empty string."}
+        }
+        if(typeof descricao !== "string" || descricao.trim().length == 0) {
+            return {isValid: false, msg: "Invalid descricao: must be a non empty string."}
+        }
+        return  {isValid: true }
     }
 }
 
